@@ -1,5 +1,9 @@
 <?php
 
+namespace App;
+
+use InvalidArgumentException;
+
 class TableOutputWriter {
 
 	public function __construct(array $headers)

@@ -1,5 +1,7 @@
 <?php
 
+namespace App;
+
 class CsvReader {
 
 	public function __construct(string $csvFileName)

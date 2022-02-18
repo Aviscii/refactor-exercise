@@ -1,6 +1,6 @@
 <?php
 
-use Order;
+namespace App;
 
 class Orders {
 

@@ -1,5 +1,7 @@
 <?php
 
+namespace App;
+
 class InputValidator {
 
 	public function __construct(int $argumentCount, array $arguments)
