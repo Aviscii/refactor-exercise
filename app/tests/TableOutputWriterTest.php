@@ -3,6 +3,7 @@
 namespace Tests;
 
 use App\TableOutputWriter;
+use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
 
 class TableOutputWriterTest extends TestCase {
@@ -18,6 +19,8 @@ class TableOutputWriterTest extends TestCase {
 		
 		$tableOutputWriter = new TableOutputWriter(["product_id", "quantity", "priority", "creted_at"]);
 
-		$this->assertNull($tableOutputWriter->addItem(["1", "2"]));
+		$this->expectException(InvalidArgumentException::class);
+
+		$tableOutputWriter->addItem(["1", "2"]);
 	}
 }

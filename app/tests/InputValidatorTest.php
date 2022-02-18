@@ -48,7 +48,7 @@ final class InputValidatorTest extends TestCase {
 
 		$inputValidator->validate();
 	
-		$this->assertSame("Argument is not a valid json string.", $inputValidator->getErrorMessage());
+		$this->assertSame("Invalid json!", $inputValidator->getErrorMessage());
 	}
 
 	public function testValidatedDataWithInvalidData() {

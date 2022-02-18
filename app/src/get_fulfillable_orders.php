@@ -1,66 +1,43 @@
 <?php
 
-if ($argc != 2) {
-    echo 'Ambiguous number of parameters!';
-    exit(1);
-}
+require __DIR__ . '/../vendor/autoload.php';
 
-if (($stock = json_decode($argv[1])) == null) {
-    echo 'Invalid json!';
-    exit(1);
-}
+use App\CsvReader;
+use App\InputValidator;
+use App\Order;
+use App\Orders;
+use App\TableOutputWriter;
 
-$orders = [];
-$ordersH = [];
+$inputValidator = new InputValidator($argc, $argv);
 
-$row = 1;
-if (($handle = fopen('orders.csv', 'r')) !== false) {
-    while (($data = fgetcsv($handle)) !== false) {
-        if ($row == 1) {
-            $ordersH = $data;
-        } else {
-            $o = [];
-            for ($i = 0; $i < count($ordersH); $i++) {
-                $o[$ordersH[$i]] = $data[$i];
-            }
-            $orders[] = $o;
-        }
-        $row++;
-    }
-    fclose($handle);
-}
+if($inputValidator->validate()) {
 
-usort($orders, function ($a, $b) {
-    $pc = -1 * ($a['priority'] <=> $b['priority']);
-    return $pc == 0 ? $a['created_at'] <=> $b['created_at'] : $pc;
-});
+	$stock = $inputValidator->getValidatedData();
 
-foreach ($ordersH as $h) {
-    echo str_pad($h, 20);
-}
-echo "\n";
-foreach ($ordersH as $h) {
-    echo str_repeat('=', 20);
-}
-echo "\n";
-foreach ($orders as $item) {
-    if ($stock->{$item['product_id']} >= $item['quantity']) {
-        foreach ($ordersH as $h) {
-            if ($h == 'priority') {
-                if ($item['priority'] == 1) {
-                    $text = 'low';
-                } else {
-                    if ($item['priority'] == 2) {
-                        $text = 'medium';
-                    } else {
-                        $text = 'high';
-                    }
-                }
-                echo str_pad($text, 20);
-            } else {
-                echo str_pad($item[$h], 20);
-            }
-        }
-        echo "\n";
-    }
+	$csvReader = new CsvReader(__DIR__ . '/orders.csv');
+
+	$csvReader->read();
+
+	$orderList = $csvReader->getData();
+
+	$orders = new Orders();
+
+	foreach($orderList as $order) {
+		$orders->storeOrder(new Order($order["product_id"], $order["quantity"], $order["priority"], $order["created_at"]));
+	}
+
+	$orders->sort();
+
+	$fullfillableOrders = $orders->getFullfillableOrders($stock);
+
+	$tableOutputWriter = new TableOutputWriter(["product_id", "quantity", "priority", "creted_at"]);
+
+	foreach($fullfillableOrders as $order) {
+		$tableOutputWriter->addItem($order->toArray());
+	}
+
+	$tableOutputWriter->write();
+} else {
+	echo $inputValidator->getErrorMessage();
+	exit(1);
 }
